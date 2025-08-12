@@ -1,30 +1,23 @@
 // db/index.js
 const { Pool } = require("pg");
-const dotenv = require("dotenv");
-dotenv.config();
-
-// Reuse pool in development & serverless
-let pool;
 
 if (!global.pgPool) {
   global.pgPool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    host: process.env.PGHOST || "ep-sweet-scene-a1dro4ii-pooler.ap-southeast-1.aws.neon.tech",
+    database: process.env.PGDATABASE || "neondb",
+    user: process.env.PGUSER || "neondb_owner",
+    password: process.env.PGPASSWORD || "npg_mYrWH3wy0qAn",
     ssl: {
       rejectUnauthorized: false
     },
-    max: 1, // limit for serverless
-    idleTimeoutMillis: 30000
-  });
-
-  global.pgPool.on("error", (err) => {
-    console.error("Unexpected error on idle client", err);
-    process.exit(-1);
+    // Serverless-friendly settings
+    max: 1, // keep low for serverless
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000
   });
 }
 
-pool = global.pgPool;
-
 module.exports = {
-  query: (text, params) => pool.query(text, params),
-  pool
+  query: (text, params) => global.pgPool.query(text, params),
+  pool: global.pgPool
 };
