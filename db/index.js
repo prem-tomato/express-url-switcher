@@ -17,6 +17,8 @@ if (!global.pgPool) {
   });
 }
 
+
+
 module.exports = {
   query: (text, params) => global.pgPool.query(text, params),
   pool: global.pgPool
