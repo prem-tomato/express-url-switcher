@@ -15,24 +15,33 @@ const UrlCreateSchema = z.object({
 const UrlUpdateSchema = UrlCreateSchema;
 
 // Health check
+// In routes/urls.js health check
 router.get("/health", async (req, res) => {
-  try {
-    await db.query("SELECT 1");
-    res.json({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-      database: "connected"
-    });
-  } catch (error) {
-    console.error("Health check DB error:", error);
-    res.status(500).json({
-      status: "error",
-      timestamp: new Date().toISOString(),
-      database: "disconnected",
-      error: "Database connection failed"
-    });
-  }
-});
+    try {
+      console.log("Testing database connection...");
+      const start = Date.now();
+      const result = await db.query("SELECT 1 as test");
+      const duration = Date.now() - start;
+      
+      console.log(`DB query successful in ${duration}ms`);
+      res.json({
+        status: "ok",
+        timestamp: new Date().toISOString(),
+        database: "connected",
+        queryTime: `${duration}ms`,
+        result: result.rows[0]
+      });
+    } catch (error) {
+      console.error("Health check DB error:", error);
+      res.status(500).json({
+        status: "error",
+        timestamp: new Date().toISOString(),
+        database: "disconnected",
+        error: error.message,
+        code: error.code
+      });
+    }
+  });
 
 // Get all URLs (only non-deleted)
 router.get("/api/urls", async (req, res) => {
